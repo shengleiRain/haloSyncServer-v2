@@ -9,5 +9,7 @@ import lombok.Data;
  */
 @Data
 public class PostContentParam {
+    private String raw;
     private String content;
+    private String rawType = "markdown";
 }

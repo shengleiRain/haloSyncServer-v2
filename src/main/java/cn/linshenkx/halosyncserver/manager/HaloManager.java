@@ -2,11 +2,12 @@ package cn.linshenkx.halosyncserver.manager;
 
 import cn.linshenkx.halosyncserver.model.dto.post.BasePostDetailDTO;
 import cn.linshenkx.halosyncserver.model.dto.post.BasePostSimpleDTO;
+import cn.linshenkx.halosyncserver.model.dto2.post.PostDTO;
 
 import java.util.List;
 
 public interface HaloManager {
-    
+
     List<BasePostSimpleDTO> getAllBasePostSimpleDTO();
 
     BasePostDetailDTO importMarkdown(String fileContent);

@@ -1,4 +1,4 @@
-package cn.linshenkx.halosyncserver.manager;
+package cn.linshenkx.halosyncserver.repository;
 
 public interface StateRepository {
 

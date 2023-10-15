@@ -28,11 +28,6 @@ class HaloManagerImplTest {
     }
 
     @Test
-    public void getLoginToken() {
-        System.out.println("token:" + haloManager.getLoginToken(false));
-    }
-
-    @Test
     public void getAllBasePostSimpleDTO() {
         System.out.println(JSON.toJSONString(haloManager.getAllBasePostSimpleDTO(), SerializerFeature.PrettyFormat));
     }

@@ -23,6 +23,7 @@ import com.vladsch.flexmark.util.ast.Node;
 import com.vladsch.flexmark.util.data.DataHolder;
 import com.vladsch.flexmark.util.data.MutableDataSet;
 import org.apache.commons.lang3.StringUtils;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.Arrays;
 import java.util.List;
@@ -100,11 +101,17 @@ public class MarkdownUtils {
         return getFrontValue(markdown, "title");
     }
 
+    @Nullable
     public static String getFrontValue(String markdown, String key) {
         Map<String, List<String>> frontMatter = getFrontMatter(markdown);
-        List<String> titleList = frontMatter.get(key);
+        return getFrontValue(frontMatter, key);
+    }
+
+    @Nullable
+    public static String getFrontValue(Map<String, List<String>> map, String key) {
+        List<String> titleList = map.get(key);
         if (titleList == null) {
-            throw new RuntimeException("该markdown找不到" + key + "信息！");
+            return null;
         }
         if (titleList.isEmpty()) {
             return null;
@@ -114,12 +121,13 @@ public class MarkdownUtils {
 
     public static List<String> getFrontValueList(String markdown, String key) {
         Map<String, List<String>> frontMatter = getFrontMatter(markdown);
-        List<String> titleList = frontMatter.get(key);
-        if (titleList == null) {
-            throw new RuntimeException("该markdown找不到" + key + "信息！");
-        }
-        return titleList;
+        return frontMatter.get(key);
     }
+
+    public static List<String> getFrontValueList(Map<String, List<String>> map, String key) {
+        return map.get(key);
+    }
+
 
     /**
      * Render Markdown content

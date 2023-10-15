@@ -1,6 +1,7 @@
 package cn.linshenkx.halosyncserver.manager.impl;
 
-import cn.linshenkx.halosyncserver.manager.StateRepository;
+import cn.linshenkx.halosyncserver.repository.StateRepository;
+import cn.linshenkx.halosyncserver.repository.impl.StateRepositoryImpl;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Test;
 

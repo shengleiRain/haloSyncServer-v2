@@ -11,6 +11,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
+import java.util.Base64;
 
 @Slf4j
 @Service
@@ -23,7 +24,7 @@ public class HaloAuthManagerImpl implements HaloAuthManager {
 
     private String token;
     private Long tokenExpiredTime;
-    
+
     @Override
     public String getLoginToken(boolean force) {
         if (force || StringUtils.isBlank(token) || tokenExpiredTime < System.currentTimeMillis()) {
@@ -38,4 +39,12 @@ public class HaloAuthManagerImpl implements HaloAuthManager {
         return token;
     }
 
+    @Override
+    public String getBaseToken() {
+        try {
+            return "Basic %s".formatted(new String(Base64.getEncoder().encode((haloGitProp.getUsername() + ":" + haloGitProp.getPassword()).getBytes("utf-8"))));
+        } catch (Exception e) {
+            return null;
+        }
+    }
 }

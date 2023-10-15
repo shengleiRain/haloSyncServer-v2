@@ -1,12 +1,13 @@
 package cn.linshenkx.halosyncserver.manager.impl;
 
-import cn.linshenkx.halosyncserver.manager.GitManager;
-import cn.linshenkx.halosyncserver.manager.HaloManager;
-import cn.linshenkx.halosyncserver.manager.StateRepository;
-import cn.linshenkx.halosyncserver.manager.SyncManager;
-import cn.linshenkx.halosyncserver.model.dto.post.BasePostMinimalDTO;
-import cn.linshenkx.halosyncserver.model.dto.post.BasePostSimpleDTO;
+import cn.linshenkx.halosyncserver.manager.*;
+import cn.linshenkx.halosyncserver.model.dto2.category.CategoryDTO;
+import cn.linshenkx.halosyncserver.model.dto2.post.PostDTO;
+import cn.linshenkx.halosyncserver.model.dto2.tags.TagDTO;
+import cn.linshenkx.halosyncserver.prop.HaloGitProp;
 import cn.linshenkx.halosyncserver.prop.HexoGitProp;
+import cn.linshenkx.halosyncserver.repository.StateRepository;
+import cn.linshenkx.halosyncserver.utils.HaloUtils;
 import cn.linshenkx.halosyncserver.utils.MarkdownUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -18,6 +19,7 @@ import org.springframework.stereotype.Service;
 import javax.annotation.PostConstruct;
 import javax.annotation.Resource;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -35,6 +37,9 @@ public class SyncManagerImpl implements SyncManager {
 
     @Resource
     private HaloManager haloManager;
+
+    @Resource
+    private Halo2Manager halo2Manager;
 
     @Resource
     private StateRepository stateRepository;
@@ -66,14 +71,17 @@ public class SyncManagerImpl implements SyncManager {
     public void syncHistoryPost(String targetCommit) throws IOException {
         RevCommit commit = gitManager.buildCommit(targetCommit);
         Map<String, String> filePathMap = gitManager.getFilePathMap(commit, hexoGitProp.getSourceDir());
-        List<BasePostSimpleDTO> postSimpleDTOList = haloManager.getAllBasePostSimpleDTO();
-        Set<String> postNameSet = postSimpleDTOList.stream().map(BasePostMinimalDTO::getTitle).collect(Collectors.toSet());
+        List<PostDTO> postDTOList = halo2Manager.getAllPosts();
+        ArrayList<CategoryDTO> categoryDTOList = new ArrayList<>(halo2Manager.getAllCategories());
+        ArrayList<TagDTO> tagDTOList = new ArrayList<>(halo2Manager.getAllTags());
+        Set<String> postNameSet = postDTOList.stream().filter((item) -> !item.getSpec().getDeleted()).map((item) -> item.getMetadata().getName()).collect(Collectors.toSet());
         for (Map.Entry<String, String> entry : filePathMap.entrySet()) {
-            String fileContent = gitManager.getFileContent(commit, entry.getValue());
-            String title = MarkdownUtils.getTitle(fileContent);
-            if (!postNameSet.contains(MarkdownUtils.getTitle(fileContent))) {
-                log.info("导入历史文章：{}", title);
-                haloManager.importMarkdown(fileContent);
+            String filePath = entry.getValue();
+            String fileContent = gitManager.getFileContent(commit, filePath);
+            String filePathMd5 = HaloUtils.toMd5(filePath);
+            if (!postNameSet.contains(filePathMd5)) {
+                log.info("导入历史文章：{}", filePath);
+                halo2Manager.savePostByMarkdown(categoryDTOList, tagDTOList, fileContent, filePath);
             }
         }
     }
@@ -87,6 +95,12 @@ public class SyncManagerImpl implements SyncManager {
             return;
         }
         List<RevCommit> commitList = gitManager.getCommitListBetweenFromAndTo(oldCommitStr, lastCommitStr);
+        if (commitList.isEmpty()) {
+            return;
+        }
+        ArrayList<CategoryDTO> categoryDTOList = new ArrayList<>(halo2Manager.getAllCategories());
+        ArrayList<TagDTO> tagDTOList = new ArrayList<>(halo2Manager.getAllTags());
+
         for (RevCommit newCommit : commitList) {
             String newCommitStr = newCommit.getName();
             oldCommitStr = stateRepository.getCommit();
@@ -138,21 +152,24 @@ public class SyncManagerImpl implements SyncManager {
                     case ADD:
                         String addedMd = gitManager.getFileContent(newCommit, newPath);
                         log.info("添加了文章：{}", MarkdownUtils.getTitle(addedMd));
-                        haloManager.importMarkdown(addedMd);
+                        halo2Manager.savePostByMarkdown(categoryDTOList, tagDTOList, addedMd, newPath);
                         break;
                     case MODIFY:
                         String oldMarkdown = gitManager.getFileContent(oldRevCommit, oldPath);
                         String oldTitle = MarkdownUtils.getTitle(oldMarkdown);
                         String modifiedMd = gitManager.getFileContent(newCommit, newPath);
                         log.info("修改了文章：{}", oldTitle);
-                        haloManager.updateMarkdown(oldMarkdown, modifiedMd);
+                        halo2Manager.savePostByMarkdown(categoryDTOList, tagDTOList, modifiedMd, newPath);
                         break;
                     case DELETE:
                         String deletedMd = gitManager.getFileContent(oldRevCommit, oldPath);
                         log.info("删除了文章：{}", MarkdownUtils.getTitle(deletedMd));
-                        haloManager.deletePost(MarkdownUtils.getTitle(gitManager.getFileContent(oldRevCommit, oldPath)));
+                        halo2Manager.recyclePost(HaloUtils.toMd5(oldPath));
                         break;
                     case RENAME:
+                        log.info("重命名文章：{} 为 {}", oldPath, newPath);
+                        halo2Manager.renamePost(oldPath, newPath);
+                        break;
                     case COPY:
                         break;
                     default:

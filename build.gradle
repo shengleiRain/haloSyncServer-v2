@@ -91,6 +91,8 @@ dependencies {
     testAnnotationProcessor 'org.projectlombok:lombok:1.18.22'
     testCompileOnly 'org.projectlombok:lombok:1.18.22'
 
+    implementation 'javax.validation:validation-api:2.0.1.Final'
+    implementation 'com.ibm.icu:icu4j:72.1'
 }
 
 tasks.withType(JavaCompile) {

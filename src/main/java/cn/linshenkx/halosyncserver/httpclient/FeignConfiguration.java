@@ -16,16 +16,13 @@ public class FeignConfiguration {
     @Bean
     Logger.Level feignLoggerLevel() {
         //这里记录所有，根据实际情况选择合适的日志level
-        return Logger.Level.BASIC;
+        return Logger.Level.FULL;
     }
 
     @Bean
     RequestInterceptor getRequestInterceptor() {
         return template -> {
-            if (template.path().startsWith("/api/admin/login")) {
-                return;
-            }
-            template.header("ADMIN-Authorization", haloAuthManager.getLoginToken(false));
+            template.header("Authorization", haloAuthManager.getBaseToken());
         };
     }
 

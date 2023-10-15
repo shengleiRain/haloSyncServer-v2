@@ -1,7 +1,7 @@
-package cn.linshenkx.halosyncserver.manager.impl;
+package cn.linshenkx.halosyncserver.repository.impl;
 
 import cn.hutool.core.io.FileUtil;
-import cn.linshenkx.halosyncserver.manager.StateRepository;
+import cn.linshenkx.halosyncserver.repository.StateRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.mapdb.DB;
