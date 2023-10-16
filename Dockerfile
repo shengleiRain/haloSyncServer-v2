@@ -2,7 +2,6 @@ FROM adoptopenjdk:11-jre-hotspot
 ENV APP_HOME=/application
 WORKDIR application
 RUN ln -sf /usr/share/zoneinfo/Asia/Shanghai /etc/localtime && echo 'Asia/Shanghai' >/etc/timezone
-COPY /dependency/ ./
 
 ENV JVM_XMS="256m" \
     JVM_XMX="256m" \
