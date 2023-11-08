@@ -112,9 +112,9 @@ task unpack(type: Copy) {
 }
 
 docker {
-    name "linshen/halo-sync-server"
-    tag "version","linshen/halo-sync-server:${project.version}"
-    tag "latest","linshen/halo-sync-server:latest"
+    name "rain1995/halo-sync-server-v2"
+    tag "version","rain1995/halo-sync-server-v2:${project.version}"
+    tag "latest","rain1995/halo-sync-server-v2:latest"
     dockerfile file('Dockerfile')
     copySpec.from(tasks.unpack.outputs).into("dependency")
     //构建前是否拉取最新基础镜像
